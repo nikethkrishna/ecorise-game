@@ -1,0 +1,271 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EcoRise - City Simulation</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#060304;font-family:'Rajdhani',sans-serif;overflow:hidden;height:100vh;color:#ddd;user-select:none}
+#c3d{position:fixed;inset:0;z-index:0}
+#skyC{display:none}
+
+/* â”€â”€ SPLASH â”€â”€ */
+#splash{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:28px 20px;background:
+radial-gradient(circle at 20% 20%,rgba(180,60,20,.16),transparent 35%),
+radial-gradient(circle at 80% 75%,rgba(30,90,50,.18),transparent 38%),
+linear-gradient(160deg,#140705 0%,#06080c 45%,#03140d 100%)}
+.logo{font-family:'Orbitron',monospace;font-size:clamp(42px,7vw,86px);font-weight:900;color:#50ff30;letter-spacing:8px;text-shadow:0 0 40px #50ff3077;animation:lp 2.5s ease-in-out infinite}
+@keyframes lp{0%,100%{text-shadow:0 0 40px #50ff3044}50%{text-shadow:0 0 80px #50ff30bb,0 0 120px #50ff3033}}
+.logo-sub{font-family:'Share Tech Mono',monospace;font-size:13px;letter-spacing:5px;color:#ff7700;opacity:.85}
+.sintro{max-width:760px;text-align:center;color:#b9c2b7;font-size:17px;line-height:1.9;padding:0 20px}
+.sintro strong{color:#d7f0b3}
+.sintro em{color:#ffb26b;font-style:normal}
+.menu-grid{width:min(1040px,100%);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.menu-card{min-height:210px;padding:18px 18px 20px;border:1px solid rgba(110,170,120,.2);border-radius:14px;background:linear-gradient(180deg,rgba(8,18,14,.92),rgba(5,10,8,.86));box-shadow:0 18px 34px rgba(0,0,0,.24);backdrop-filter:blur(6px)}
+.menu-card h3{font-family:'Orbitron',monospace;font-size:12px;letter-spacing:2px;color:#9fe47f;margin-bottom:12px}
+.menu-card p{font-size:15px;line-height:1.7;color:#b4bbb4}
+.menu-list{display:flex;flex-direction:column;gap:10px;font-size:14px;line-height:1.6;color:#c8d2c3}
+.menu-list div{padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05)}
+.sdesc strong{color:#ffcc44}.sdesc em{color:#ff5544;font-style:normal}
+.sbtn{font-family:'Orbitron',monospace;font-size:14px;font-weight:700;letter-spacing:3px;padding:15px 52px;border:2px solid #50ff30;background:transparent;color:#50ff30;cursor:pointer;clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);transition:all .2s}
+.sbtn:hover{background:#50ff30;color:#000;box-shadow:0 0 30px #50ff30}
+.scred{font-family:'Orbitron',monospace;font-size:12px;color:#50ff30;letter-spacing:3px;border:1px solid rgba(80,255,48,.4);padding:6px 18px;border-radius:3px;background:rgba(80,255,48,.06)}
+.sname{font-family:'Share Tech Mono',monospace;font-size:11px;color:#888;letter-spacing:2px}
+@media (max-width:900px){
+  .menu-grid{grid-template-columns:1fr}
+  .menu-card{min-height:unset}
+}
+
+/* â”€â”€ HUD WRAPPER â”€â”€ */
+#hud{position:fixed;inset:0;z-index:20;pointer-events:none;display:none}
+
+/* TOP BAR */
+#topbar{position:absolute;top:0;left:0;right:0;height:50px;background:rgba(0,0,0,.88);border-bottom:1px solid rgba(80,255,48,.1);display:flex;align-items:center;padding:0 14px;gap:10px;pointer-events:all}
+.logo-sm{font-family:'Orbitron',monospace;font-size:15px;color:#50ff30;letter-spacing:3px}
+.hd{width:1px;height:22px;background:#333}
+.pill{display:flex;align-items:center;gap:5px;background:rgba(0,0,0,.6);border:1px solid #252525;border-radius:3px;padding:3px 10px}
+.plab{font-family:'Share Tech Mono',monospace;font-size:9px;color:#666;letter-spacing:2px}
+.pval{font-family:'Orbitron',monospace;font-size:12px;font-weight:700}
+#pv-coins .pval{color:#ffcc00}#pv-timer .pval{color:#ffaa00}#pv-eco .pval{color:#50ff30}#pv-day .pval{color:#aaaaff}
+.sp{flex:1}
+#income-badge{font-family:'Share Tech Mono',monospace;font-size:10px;color:#ffcc00;background:rgba(0,0,0,.7);border:1px solid rgba(255,200,0,.25);border-radius:2px;padding:3px 10px;white-space:nowrap}
+#demo-badge{font-family:'Share Tech Mono',monospace;font-size:10px;color:#ff8844;white-space:nowrap}
+
+/* LEFT STATS PANEL */
+#stats{position:absolute;top:58px;left:12px;width:175px;background:rgba(5,8,5,.92);border:1px solid rgba(80,255,48,.18);border-radius:5px;padding:10px;display:flex;flex-direction:column;gap:7px;pointer-events:all}
+.ph{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:#50ff3066;border-bottom:1px solid rgba(80,255,48,.1);padding-bottom:4px}
+.srow{display:flex;flex-direction:column;gap:2px}
+.slbl{font-size:9px;color:#777;font-family:'Share Tech Mono',monospace;letter-spacing:1px}
+.sbg{height:6px;background:#111;border-radius:3px;overflow:hidden;border:1px solid #1e1e1e}
+.sfill{height:100%;border-radius:3px;transition:width .55s,background .55s}
+.snum{font-family:'Share Tech Mono',monospace;font-size:9px;color:#666;text-align:right}
+.alert{background:rgba(255,50,0,.08);border:1px solid rgba(255,70,0,.35);border-radius:3px;padding:4px 7px;font-family:'Share Tech Mono',monospace;font-size:9px;color:#ff8844;display:none;animation:ab 1.1s ease-in-out infinite}
+@keyframes ab{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* STATUS BANNER â€” TOP CENTRE */
+#status{position:absolute;top:58px;left:195px;right:12px;font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;color:#fff;background:rgba(0,0,0,.85);padding:7px 18px;border-radius:4px;border:1px solid rgba(80,255,48,.35);pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:calc(100vw - 420px)}
+#status.demo{border-color:rgba(255,70,30,.65);color:#ffbb88;background:rgba(35,8,0,.9)}
+#status.build{border-color:rgba(80,255,48,.5);color:#aaffaa;background:rgba(0,18,0,.9)}
+#status.clean{border-color:rgba(40,170,255,.55);color:#88ddff;background:rgba(0,18,35,.9)}
+
+/* BUILD BAR â€” BOTTOM CENTRE */
+#buildbar{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:5px;pointer-events:all;max-width:94vw;overflow-x:auto;padding:2px 2px 4px}
+.bbt{background:rgba(5,9,5,.94);border:1px solid #1e2020;border-radius:6px;padding:7px 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:border-color .15s,transform .15s,box-shadow .15s;min-width:66px;flex-shrink:0;position:relative}
+.bbt:hover:not([disabled]):not(.lk){border-color:#50ff30;transform:translateY(-4px);box-shadow:0 8px 20px rgba(80,255,48,.14)}
+.bbt.sel{border-color:#50ff30;box-shadow:0 0 14px rgba(80,255,48,.28)}
+.bbt[disabled]{opacity:.2;cursor:not-allowed}
+.bbt.lk{opacity:.28;cursor:not-allowed;border-color:#553300}
+.bico{font-size:12px;font-family:'Share Tech Mono',monospace;letter-spacing:1px;color:#9bdc8c}.bname{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:9.5px;color:#ccc;text-align:center;line-height:1.2}
+.bcost{font-family:'Share Tech Mono',monospace;font-size:9px;color:#ffcc00}
+.bfx{font-size:7.5px;color:#555;text-align:center}
+.bkey{position:absolute;top:3px;left:5px;font-family:'Share Tech Mono',monospace;font-size:7px;color:#444}
+
+/* RIGHT ACTION BTNS */
+#actbtns{position:absolute;bottom:12px;right:12px;display:flex;flex-direction:column;gap:6px;pointer-events:all}
+.abt{font-family:'Orbitron',monospace;font-size:9px;padding:9px 14px;border:1px solid #441111;background:rgba(8,4,4,.9);color:#ff5544;cursor:pointer;letter-spacing:2px;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);transition:background .18s,color .18s}
+.abt:hover,.abt.on{background:#ee3322;color:#fff;border-color:#ee3322}
+.abt.cl{border-color:#114488;color:#44aaff}
+.abt.cl:hover,.abt.cl.on{background:#1177cc;color:#fff;border-color:#1177cc}
+
+/* GUIDE BOX */
+#guide{position:absolute;bottom:100px;right:12px;width:294px;background:rgba(5,9,5,.97);border:2px solid #50ff30;border-radius:8px;display:none;pointer-events:all;overflow:hidden;box-shadow:0 0 24px rgba(80,255,48,.1),0 16px 30px rgba(0,0,0,.55);animation:gbin .35s ease}
+@keyframes gbin{from{transform:translateY(22px);opacity:0}to{transform:translateY(0);opacity:1}}
+.ghdr{background:rgba(0,0,0,.5);padding:8px 12px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(80,255,48,.15)}
+.gname{font-family:'Orbitron',monospace;font-size:11px;color:#50ff30;letter-spacing:2px}
+.gtitle{font-family:'Share Tech Mono',monospace;font-size:8px;color:#555;letter-spacing:1px}
+.gtag{background:#bb2200;color:#fff;font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:2px;padding:2px 6px;border-radius:2px;margin-left:auto;white-space:nowrap}
+.gbody{padding:10px 14px;min-height:52px}
+.gtext{font-size:13px;color:#ccc;line-height:1.65;font-family:'Rajdhani',sans-serif}
+.gtext strong{color:#ffbb44}.gtext em{color:#ff5533;font-style:normal}
+.gfoot{padding:5px 14px 10px;display:flex;align-items:center;justify-content:space-between}
+.gok{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;padding:6px 16px;border:1px solid #50ff30;background:transparent;color:#50ff30;cursor:pointer;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);transition:background .18s,color .18s}
+.gok:hover{background:#50ff30;color:#000}
+.gprog{font-family:'Share Tech Mono',monospace;font-size:9px;color:#555}
+
+/* MINIMAP */
+#minimap{position:absolute;bottom:88px;left:12px;background:rgba(5,8,5,.92);border:1px solid rgba(80,255,48,.2);border-radius:4px;pointer-events:all;cursor:crosshair}
+#mm-canvas{display:block;border-radius:4px}
+
+/* FACTORY PANEL */
+#factpanel{position:absolute;top:210px;left:12px;width:228px;max-height:calc(100vh - 305px);background:rgba(5,6,5,.92);border:1px solid rgba(180,40,20,.3);border-radius:8px;pointer-events:all;overflow:hidden;display:flex;flex-direction:column}
+.fp-hdr{background:rgba(120,20,5,.15);padding:6px 10px;font-family:'Share Tech Mono',monospace;font-size:9px;color:#dd4411;letter-spacing:2px;border-bottom:1px solid rgba(180,40,20,.2)}
+.fp-hdr.user{background:rgba(12,60,26,.22);color:#7fd58d;border-top:1px solid rgba(80,255,48,.16)}
+.fp-wrap{overflow:auto;display:flex;flex-direction:column}
+.fp-row{padding:6px 10px;font-size:11px;cursor:pointer;display:grid;grid-template-columns:8px 1fr auto;align-items:center;gap:6px;transition:background .12s;border-bottom:1px solid rgba(255,255,255,.03)}
+.fp-row:hover{background:rgba(255,80,20,.08)}
+.fp-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.fp-name{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:10px;color:#dd8844;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.fp-name.user{color:#a9df8d}
+.fp-meta{display:flex;align-items:center;gap:6px;justify-self:end}
+.fp-status{font-family:'Share Tech Mono',monospace;font-size:7px;letter-spacing:1px;padding:2px 5px;border-radius:999px;border:1px solid rgba(255,255,255,.12);color:#d1d1d1}
+.fp-status.on{border-color:rgba(110,220,120,.28);color:#aef2a0;background:rgba(50,120,40,.12)}
+.fp-status.off{border-color:rgba(255,110,80,.28);color:#ff9c86;background:rgba(110,30,18,.16)}
+.fp-coord{font-family:'Share Tech Mono',monospace;font-size:7px;color:#444;white-space:nowrap}
+
+/* MISSION FLASH */
+#mflash{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;pointer-events:none}
+.mf-inner{font-family:'Orbitron',monospace;font-size:clamp(22px,4vw,40px);font-weight:900;color:#50ff30;text-shadow:0 0 50px #50ff30;letter-spacing:6px;animation:mfanim .55s ease}
+@keyframes mfanim{from{transform:scale(.4);opacity:0}60%{transform:scale(1.1)}to{transform:scale(1);opacity:1}}
+
+/* TOAST â€” left of top-right to avoid overlap */
+#toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:400;background:#080e08;border:1px solid #50ff30;color:#50ff30;font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;padding:7px 20px;border-radius:2px;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;max-width:55vw;text-align:center}
+#toast.show{opacity:1}#toast.warn{border-color:#ff8800;color:#ffaa33}#toast.bad{border-color:#ff2222;color:#ff4444}
+
+/* TOOLTIP */
+#tip{position:fixed;background:rgba(5,9,5,.97);border:1px solid rgba(80,255,48,.25);border-radius:4px;padding:8px 12px;pointer-events:none;display:none;z-index:350;max-width:190px}
+.tnm{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;color:#fff}
+.tco{color:#ffcc00;font-family:'Share Tech Mono',monospace;font-size:10px}
+.tfx{color:#888;font-size:11px;margin-top:2px;line-height:1.4}
+
+/* END SCREEN */
+#end{position:fixed;inset:0;z-index:500;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center}
+#end.win{background:radial-gradient(ellipse at 50%,rgba(0,50,0,.97),rgba(2,3,2,.99))}
+#end.lose{background:radial-gradient(ellipse at 50%,rgba(50,0,0,.97),rgba(3,2,2,.99))}
+.ettl{font-family:'Orbitron',monospace;font-size:clamp(26px,5vw,52px);font-weight:900;letter-spacing:4px}
+.ettl.win{color:#50ff30;text-shadow:0 0 40px #50ff3055}
+.ettl.lose{color:#ff3333;text-shadow:0 0 40px #ff333355}
+.ebody{font-family:'Share Tech Mono',monospace;font-size:12px;color:#777;line-height:2.1;white-space:pre}
+.ebtn{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;letter-spacing:3px;padding:13px 40px;border:2px solid #50ff30;background:transparent;color:#50ff30;cursor:pointer;clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);transition:all .2s}
+.ebtn:hover{background:#50ff30;color:#000;box-shadow:0 0 25px #50ff30}
+#camhint{position:absolute;bottom:12px;left:195px;font-family:'Share Tech Mono',monospace;font-size:8px;color:#2a2a2a;letter-spacing:1px;pointer-events:none;line-height:1.9}
+</style>
+</head>
+<body>
+<canvas id="c3d"></canvas>
+<canvas id="skyC"></canvas>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+    <div class="logo">ECORISE</div>
+    <div class="logo-sub">RESTORE THE FALLEN CITY | 3D SIMULATION</div>
+  </div>
+  <div class="sintro">
+    Factories poisoned the sky, sewage cut through every district, and the city forgot what clean water looked like.
+    <em>You are the restoration lead.</em> Rebuild neighborhoods, heal the land, and turn a dying industrial grid back into a living city.
+  </div>
+  <div class="menu-grid">
+    <div class="menu-card">
+      <h3>THE LORE</h3>
+      <p>EcoRise begins after years of unchecked industrial expansion. The air is toxic, rivers are collapsing, and citizens survive behind masks. Your job is to reverse the damage before the city becomes permanent wasteland.</p>
+    </div>
+    <div class="menu-card">
+      <h3>OBJECTIVES</h3>
+      <div class="menu-list">
+        <div>Purify the air and push the skyline back to blue.</div>
+        <div>Clean the water, unlock rivers, and restore ponds across the map.</div>
+        <div>Rebuild homes, services, and civic life so the city can thrive again.</div>
+      </div>
+    </div>
+    <div class="menu-card">
+      <h3>HOW TO PLAY</h3>
+      <div class="menu-list">
+        <div>Select buildings from the bottom bar or press keys `1-8` to place them.</div>
+        <div>Use `D` to arm demolition charges, click dark runoff streams to clean them, and scroll to zoom.</div>
+        <div>Use the minimap and side panels to jump around the city. Missions only appear after the game starts.</div>
+      </div>
+    </div>
+  </div>
+  <button class="sbtn" id="btn-start">BEGIN RESTORATION</button>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:4px">
+    <div class="scred">CODING FOR CLIMATE 2026 | DPS E-CITY BANGALORE</div>
+    <div class="sname">BY NIKETH K | CLASS X-D</div>
+  </div>
+</div>
+
+<!-- HUD -->
+<div id="hud">
+  <!-- TOP BAR -->
+  <div id="topbar">
+    <div class="logo-sm">ECORISE</div><div class="hd"></div>
+    <div class="pill" id="pv-coins"><span class="plab">COINS</span><span class="pval" id="v-coins">800</span></div>
+    <div class="pill" id="pv-eco"><span class="plab">ECO</span><span class="pval" id="v-eco">0%</span></div>
+    <div class="pill" id="pv-timer"><span class="plab">TIME</span><span class="pval" id="v-timer">10:00</span></div>
+    <div class="pill" id="pv-day"><span class="plab">DAY</span><span class="pval" id="v-day">1</span></div>
+    <div class="sp"></div>
+    <div id="income-badge">+<span id="v-income">0</span> coins/day</div>
+    <div id="demo-badge"><span id="v-demo">4</span>/4 demolish per min</div>
+  </div>
+
+  <!-- LEFT STATS -->
+  <div id="stats">
+    <div class="ph">CITY VITALS</div>
+    <div class="srow"><div class="slbl">AIR</div><div class="sbg"><div class="sfill" id="sf-air" style="width:15%;background:#ff5533"></div></div><div class="snum"><span id="v-air">15</span>/100</div></div>
+    <div class="srow"><div class="slbl">WATER</div><div class="sbg"><div class="sfill" id="sf-wat" style="width:8%;background:#ff5533"></div></div><div class="snum"><span id="v-wat">8</span>/100</div></div>
+    <div class="srow"><div class="slbl">POLLUTION</div><div class="sbg"><div class="sfill" id="sf-pol" style="width:80%;background:#cc2200"></div></div><div class="snum"><span id="v-pol">80</span>/100</div></div>
+    <div class="srow"><div class="slbl">HAPPINESS</div><div class="sbg"><div class="sfill" id="sf-hap" style="width:20%;background:#ff5533"></div></div><div class="snum"><span id="v-hap">20</span>/100</div></div>
+    <div class="srow"><div class="slbl">POPULATION</div><div class="sbg"><div class="sfill" id="sf-pop" style="width:3%;background:#bb88ff"></div></div><div class="snum"><span id="v-pop">30</span>/1000</div></div>
+    <div class="alert" id="al-pol">CRITICAL POLLUTION</div>
+    <div class="alert" id="al-wat">TOXIC WATER</div>
+  </div>
+
+  <!-- STATUS -->
+  <div id="status">Pick a build | D demolish | CLEAN PONDS button | right-drag pan | click minimap to jump</div>
+
+  <!-- FACTORY PANEL -->
+  <div id="factpanel">
+    <div class="fp-hdr">FACTORY STATUS</div>
+    <div class="fp-wrap" id="fp-list"></div>
+    <div class="fp-hdr user">USER BUILDINGS</div>
+    <div class="fp-wrap" id="ub-list"></div>
+  </div>
+
+  <!-- BUILD BAR -->
+  <div id="buildbar"></div>
+
+  <!-- ACTION BUTTONS -->
+  <div id="actbtns">
+    <button class="abt" id="btn-demo">DEMOLISH</button>
+    <button class="abt cl" id="btn-clean">CLEAN PONDS</button>
+  </div>
+
+  <!-- GUIDE BOX -->
+  <div id="guide">
+    <div class="ghdr">
+      <canvas id="guide-av" width="44" height="56"></canvas>
+      <div style="flex:1;min-width:0"><div class="gname">DR. MEERA</div><div class="gtitle">ECO RESTORATION LEAD</div></div>
+      <div class="gtag" id="g-tag">MISSION 1</div>
+    </div>
+    <div class="gbody"><div class="gtext" id="g-text">Loading...</div></div>
+    <div class="gfoot"><div class="gprog" id="g-prog"></div><button class="gok" id="btn-guide-ok">CONTINUE</button></div>
+  </div>
+
+  <!-- MINIMAP -->
+  <div id="minimap"><canvas id="mm-canvas" width="220" height="160"></canvas></div>
+
+  <div id="camhint">UP/DOWN pitch | scroll zoom | right-drag pan | click minimap and side panels to jump</div>
+</div>
+
+<!-- OVERLAYS -->
+<div id="mflash"><div class="mf-inner" id="mf-text"></div></div>
+<div id="toast"></div>
+<div id="tip"><div class="tnm" id="t-nm"></div><div class="tco" id="t-co"></div><div class="tfx" id="t-fx"></div></div>
+<div id="end"><div class="ettl" id="e-ttl"></div><div class="ebody" id="e-body"></div><button class="ebtn" id="btn-restart">PLAY AGAIN</button></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="ecorise_final_new.js"></script>
+</body>
+</html>
+
